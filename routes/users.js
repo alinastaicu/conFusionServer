@@ -3,12 +3,17 @@ var express = require('express');
 var User = require('../models/user');
 var passport = require('passport');
 var authenticate = require('../authenticate');
+const cors = require('./cors');
 
 var router = express.Router();
 router.use(bodyParser.json());
 
 /* GET users listing. */
-router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+router.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, function(
+  req,
+  res,
+  next,
+) {
   User.find({}, function(err, user) {
     if (err) throw err;
     res.json(user);
@@ -16,7 +21,7 @@ router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req,
 });
 
 /* GET current user */
-router.get('/userinfo', authenticate.verifyUser, function(req, res, next) {
+router.get('/userinfo', cors.corsWithOptions, authenticate.verifyUser, function(req, res, next) {
   var currentUser = req.user;
   var token = authenticate.getToken({ _id: currentUser._id });
 
@@ -26,7 +31,7 @@ router.get('/userinfo', authenticate.verifyUser, function(req, res, next) {
   });
 });
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup', cors.corsWithOptions, (req, res, next) => {
   User.register(new User({ username: req.body.username }), req.body.password, (err, user) => {
     if (err) {
       res.statusCode = 500;
@@ -52,7 +57,7 @@ router.post('/signup', (req, res, next) => {
   });
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
+router.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
   var token = authenticate.getToken({ _id: req.user._id });
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
